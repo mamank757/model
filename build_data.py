@@ -13,8 +13,9 @@ PERUBAHAN UTAMA (v2)
     Model dipakai bila skill > SKMIN dan p <= PMAX; selain itu kembali ke klimatologi.
  3. Curah hujan dimodelkan pada skala akar pangkat tiga (distribusi miring kanan -> mendekati normal),
     sehingga peluang kategori tidak bias. Hari hujan tetap skala linear.
- 4. Satu sumber indeks: BoM (Nino 3.4 relatif + DMI) untuk melatih DAN memprakirakan. Bila BoM tidak
-    tersedia / tidak mencakup periode latih, dipakai CPC (Nino 3.4) + NOAA PSL (DMI) sebagai cadangan.
+ 4. Sumber indeks: bila BoM mencakup periode latih dipakai untuk melatih DAN memprakirakan. Kenyataannya
+    berkas BoM baru mulai 2008, sehingga yang dipakai CPC (Nino 3.4 mingguan) + NOAA PSL (DMI bulanan);
+    BoM hanya mengisi bulan DMI terbaru yang belum dirilis PSL (dikalibrasi ke skala PSL).
  5. MIN_WEEKS = 3 (sama dengan process_enso.py / process_iod.py). Bulan terakhir = bulan lengkap terakhir
     yang tersedia di KEDUA indeks.
  6. data.json hanya ditulis ulang bila isi (selain stempel waktu) berubah -> tidak ada commit harian sia-sia.
@@ -125,8 +126,8 @@ def get_indices():
     need = T0 - 8  # prediktor lead 6 + pooling +-1 bulan
     if oni and dmi and min(oni) <= need and min(dmi) <= need:
         return oni, dmi, 'BoM', f'ENSO: {me}; IOD: {md}'
-    why = f'BoM tidak mencakup periode latih (ENSO awal {min(oni) // 12 if oni else "-"}, IOD awal {min(dmi) // 12 if dmi else "-"})'
-    print('PERINGATAN:', why, '-> cadangan CPC + PSL')
+    why = f'BoM hanya mulai {min(oni) // 12 if oni else "-"}/{min(dmi) // 12 if dmi else "-"}, periode latih mulai {Y0}'
+    print('INFO:', why, '-> pelatihan memakai CPC (Nino 3.4) + NOAA PSL (DMI); BoM hanya mengisi bulan DMI terbaru')
     # (2) Cadangan: CPC + PSL (+ BoM untuk bulan terbaru)
     txt, m1 = fetch([ENSO_URL], 'wksst9120.for')
     oni = parse_weekly(txt) if txt else {}
@@ -140,7 +141,7 @@ def get_indices():
         b = parse_bom(td)
         if b:
             merge_bom(dmi, b)
-    return oni, dmi, 'CPC+PSL (cadangan)', f'{why}; {m1}; {m2}'
+    return oni, dmi, 'CPC Nino3.4 + PSL DMI (BoM mengisi bulan terbaru)', f'{why}; {m1}; {m2}'
 
 
 # ---------- Data hujan ----------
@@ -151,9 +152,22 @@ def num(v):
         return np.nan
 
 
+def find_xlsx():
+    """Pakai nama baku; bila tidak ada, cari berkas Data_Curah_Hujan*.xlsx di root repo."""
+    if pathlib.Path(XLSX).exists():
+        return XLSX
+    c = sorted(pathlib.Path('.').glob('Data_Curah_Hujan*.xlsx'))
+    if c:
+        print('Memakai berkas data hujan:', c[0])
+        return str(c[0])
+    raise SystemExit('Data hujan tidak ditemukan. Pilih salah satu: (1) unggah berkas xlsx data hujan ke root repo '
+                     f'(nama "{XLSX}" atau diawali "Data_Curah_Hujan"), atau (2) isi secret GitHub SHEET_XLSX_URL '
+                     'dengan tautan ekspor Google Sheets (.../export?format=xlsx, akses "siapa saja yang memiliki tautan").')
+
+
 def read_stations():
     out = []
-    for ws in load_workbook(XLSX, data_only=True).worksheets:
+    for ws in load_workbook(find_xlsx(), data_only=True).worksheets:
         v = [list(r) for r in ws.iter_rows(values_only=True)]
         meta, r1, r2 = {}, -1, -1
         for i, r in enumerate(v):
@@ -352,12 +366,16 @@ def clean(o):  # numpy -> JSON, NaN -> null
 
 
 def main():
-    u = os.environ.get('SHEET_XLSX_URL')  # opsional: data hujan dari Google Sheets (link export xlsx)
+    u = (os.environ.get('SHEET_XLSX_URL') or '').strip().strip('"\'')  # data hujan dari Google Sheets (link export xlsx)
+    print('Secret SHEET_XLSX_URL:', 'terisi' if u else 'KOSONG (memakai berkas xlsx di repo)')
     if u:
         try:
             r = requests.get(u, timeout=120); r.raise_for_status()
+            if r.content[:2] != b'PK':  # xlsx = berkas zip; halaman login/HTML tidak diawali 'PK'
+                raise ValueError('hasil unduhan bukan berkas xlsx (sheet belum dibagikan "siapa saja yang memiliki tautan", '
+                                 'atau tautan bukan format .../export?format=xlsx)')
             pathlib.Path(XLSX).write_bytes(r.content)
-            print('Data hujan diambil dari Google Sheets')
+            print(f'Data hujan diambil dari Google Sheets ({len(r.content) // 1024} KB)')
         except Exception as e:
             print('Gagal ambil Google Sheets, memakai file xlsx di repo:', e)
     oni, dmi, src, msg = get_indices()
