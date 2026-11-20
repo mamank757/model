@@ -4,7 +4,7 @@ on:
     - cron: '0 3 * * *'   # tiap hari 03:00 UTC; BoM memperbarui mingguan, commit hanya bila hasil berubah
   workflow_dispatch:
   push:
-    paths: ['Data_Curah_Hujan_-_Mamuju.xlsx', 'build_data.py']
+    paths: ['Data_Curah_Hujan*.xlsx', 'build_data.py']
 permissions:
   contents: write
 concurrency:
@@ -24,6 +24,7 @@ jobs:
         env:
           SHEET_XLSX_URL: ${{ secrets.SHEET_XLSX_URL }}  # opsional
           PERMS: '99'
+          PYTHONUNBUFFERED: '1'
       - name: Commit hasil
         run: |
           git config user.name "github-actions[bot]"
