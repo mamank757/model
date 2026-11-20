@@ -40,6 +40,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;b
 
 <h3>Analisis jadwal tanam &amp; varietas padi</h3>
 <div class="bar"><label>Sumber air <select id="wq"><option value="0">Tadah hujan</option><option value=".5">Irigasi sederhana (menutup 50% defisit)</option><option value=".9">Irigasi teknis (menutup 90% defisit)</option></select></label>
+<label>Sistem lahan <select id="sys"><option value="0">Sawah</option><option value="1">Lahan kering (gogo)</option></select></label>
 <label>Metode tanam <select id="metode"><option value="tapin">Tapin (tanam pindah)</option><option value="tabela">Tabela (tanam benih langsung)</option></select></label>
 <span class="note">Pos &amp; skenario ENSO/IOD mengikuti pilihan di atas.</span></div>
 <div class="cd" id="rec" style="margin-bottom:12px"></div>
@@ -47,7 +48,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;b
 <div class="cd" style="margin-bottom:12px"><h2>Tanggal tanam terbaik per pos</h2><table id="tp"></table></div>
 
 <p class="note"><b>Metode hujan:</b> baseline klimatologi 1999–2024 (26 tahun). Curah hujan dimodelkan pada skala akar pangkat tiga (distribusi miring kanan), hari hujan pada skala linear. Prediktor: anomali Niño 3.4 (NOAA CPC, mingguan) dan DMI (NOAA PSL; bulan terbaru diisi data BoM yang dikalibrasi), dirata-ratakan bulanan (bulan dengan &lt;3 minggu data diabaikan), pada lead 1–6 bulan; regresi ridge per pos × bulan × lead dengan pooling ±1 bulan. Validasi <i>leave-one-year-out nested</i>: klimatologi dihitung ulang tanpa tahun uji, skill = MSESS terhadap prakiraan klimatologi, dan signifikansi dari uji permutasi tahun. Model dipakai hanya bila skill &gt; ambang dan p ≤ ambang (lihat meta di atas); selain itu prakiraan = klimatologi. Sifat hujan dan peluang memakai definisi BMKG: Atas Normal &gt;115%, Normal 85–115%, Bawah Normal &lt;85% terhadap rata-rata; peluang klimatologi (tanpa sinyal) tidak persis 33/33/33. Dengan 11 pos yang saling berkorelasi kuat dan puluhan model, sebagian model lolos hanya karena kebetulan; baca “model lolos” sebagai indikasi, bukan bukti. Skenario diasumsikan persisten dan model linear tidak divalidasi untuk indeks ekstrem di luar rentang latih.<br>
-<b>Metode tanam:</b> setiap kombinasi pos/skenario disimulasikan dengan <b>ensembel hujan harian</b>: total bulanan diambil dari sebaran prediktif (skala akar pangkat tiga), jumlah hari hujan dari prakiraan hari hujan, hari hujan dipilih acak dalam bulan dan total dibagi dengan bobot eksponensial (bulan di luar 6 bulan prakiraan = klimatologi). Neraca air harian dengan cadangan genangan (sawah 50 mm, gogo 40 mm; lahan dianggap tergenang saat tanam): hujan efektif 85% (gogo 70%), kebutuhan = penyiapan lahan 200 mm/14 hari lalu ETo×Kc + perkolasi 1,5 mm. Kekurangan air yang tak tertutup irigasi dihitung relatif terhadap ETc per fase (vegetatif/generatif/pemasakan) dan dikalikan Ky per fase (pendekatan FAO-33), ditambah penalti hujan lebat (&gt;40 mm/hari) saat berbunga dan menjelang panen. Skor = hasil relatif rata-rata; P20 = ukuran risiko. Peringkat varietas utama memakai kecocokan iklim ((rerata+P20)/2), potensi hasil hanya sebagai pemecah seri. Pada Tabela umur dipotong 10 hari dan tanpa persemaian.<br>
+<b>Metode tanam:</b> setiap kombinasi pos/skenario disimulasikan dengan <b>ensembel hujan harian</b>: total bulanan diambil dari sebaran prediktif (skala akar pangkat tiga), jumlah hari hujan dari prakiraan hari hujan, hari hujan dipilih acak dalam bulan dan total dibagi dengan bobot eksponensial (bulan di luar 6 bulan prakiraan = klimatologi). Neraca air harian dengan cadangan genangan (sawah 50 mm, gogo 40 mm; lahan dianggap tergenang saat tanam): hujan efektif 85% (gogo 70%), kebutuhan = penyiapan lahan 200 mm/14 hari lalu ETo×Kc + perkolasi 1,5 mm. Kekurangan air yang tak tertutup irigasi dihitung relatif terhadap ETc per fase (vegetatif/generatif/pemasakan) dan dikalikan Ky per fase (pendekatan FAO-33), ditambah penalti hujan lebat (&gt;40 mm/hari) saat berbunga dan menjelang panen. Skor = hasil relatif rata-rata; P20 = ukuran risiko. Peringkat varietas utama memakai kecocokan iklim ((rerata+P20)/2), potensi hasil hanya sebagai pemecah seri. Pada Tabela umur dipotong 10 hari dan tanpa persemaian. Sawah dan gogo dihitung dan diperingkat terpisah: skor tidak dapat dibandingkan lintas sistem, karena gogo tidak memerlukan penyiapan lahan basah dan perkolasi sehingga skornya selalu lebih tinggi. Kolom tanggal dimulai dari hari ini.<br>
 <b>Asumsi yang wajib dikalibrasi:</b> ETo (konstan 4 mm/hari; isi <code>ETO_M</code> atau <code>eto</code> per pos), perkolasi, kapasitas genangan, Ky per fase, faktor toleransi kekeringan 15%/tingkat, ambang hujan lebat, hasil lapang 65% potensi (gogo 45%). Hujan harian hanyalah bangkitan acak dari data bulanan, tanpa korelasi antarbulan dan tanpa pengelompokan hari kering; ganti dengan data harian bila tersedia. Data varietas (Google Sheets) bersifat indikatif: cocokkan dengan Deskripsi Varietas resmi dan rekomendasi BPSB/BRMP Sulbar. Model tidak memuat suhu, tanah, hama-penyakit, rendaman, atau debit irigasi.</p></main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -133,40 +134,45 @@ function loss(P,ET,T,v,q,Dc){
     w=Math.min(.1,.02*cnt(T+.4*Dc,T+.7*Dc))+Math.min(.1,.02*cnt(T+Dc-14,T+Dc));
   return Math.min(.95,st*(1-.15*(v.k||0))+w);
 }
+const dc=(v,pu)=>v.g?v.u:v.u-pu-(pu>0?0:NUR),vs=g=>VAR.filter(v=>!!v.g===!!g);
 function cell(en,T,v,q,pu){
-  const Dc=v.u-pu-(pu>0?0:NUR);
+  const Dc=dc(v,pu);
   if(Dc<30||T+Dc>en.nd)return null;
   const sc_=en.E.map(P=>100*(1-loss(P,en.ET,T,v,q,Dc))).sort((a,b)=>a-b),
     m=sc_.reduce((a,b)=>a+b,0)/sc_.length,b=sc_[Math.floor(.2*sc_.length)];
   return{m,b,y:v.y*(v.a||.65)*m/100,sh:Math.max(0,Math.min(Dc,en.fcEnd-T))/Dc};
 }
 const cache={};
-function plan(s,q,pu){
-  const key=[s.id,sc.o,sc.d,q,pu,VAR.length].join('|');if(cache[key])return cache[key];
+function plan(s,q,pu,g){
+  const key=[s.id,sc.o,sc.d,q,pu,g,VAR.length].join('|');if(cache[key])return cache[key];
   if(Object.keys(cache).length>150)for(const k in cache)delete cache[k];
-  const en=mkEns(s,sc.o,sc.d),t0=new Date(en.y0,en.m0,1),cols=[];
-  for(let T=14;T<en.nd-90;T+=15)cols.push(T);
-  return cache[key]={t0,cols,res:VAR.map(v=>cols.map(T=>cell(en,T,v,q,pu)))};
+  const en=mkEns(s,sc.o,sc.d),t0=new Date(en.y0,en.m0,1),cols=[],
+    td=Math.max(14,Math.ceil((Date.now()-t0)/864e5)); // mulai dari hari ini, bukan tanggal yang sudah lewat
+  for(let T=td;T<en.nd-90;T+=15)cols.push(T);
+  return cache[key]={t0,cols,res:vs(g).map(v=>cols.map(T=>cell(en,T,v,q,pu)))};
 }
 const dl=(t0,T)=>{const x=new Date(t0.getFullYear(),t0.getMonth(),1+T);return x.getDate()+' '+MN[x.getMonth()]+' '+String(x.getFullYear()).slice(2);};
 const key=c=>(c.m+c.b)/2+.5*c.y; // kecocokan iklim utama, hasil sebagai pemecah seri
 const bestOf=R=>{let b=null;R.res.forEach((r,i)=>r.forEach((c,j)=>{if(c&&(!b||key(c)>key(b.c)))b={i,j,c};}));return b;};
 function tanam(){
-  const pu=$('metode').value==='tabela'?10:0,lbl=pu>0?'Tanam (Tabela)':'Pindah tanam',q=+$('wq').value,
-    R=plan(S,q,pu),{t0,cols,res}=R,b=bestOf(R);$('ne').textContent=ENS;
+  const g=+$('sys').value,V=vs(g),pu=g?0:($('metode').value==='tabela'?10:0),q=+$('wq').value,
+    lbl=g?'Tanam (gogo)':pu>0?'Tanam (Tabela)':'Pindah tanam';
+  $('metode').disabled=!!g;
+  if(!V.length){$('hm').innerHTML='';$('tp').innerHTML='';$('rec').textContent='Tidak ada varietas untuk sistem lahan ini pada data varietas.';return;}
+  const R=plan(S,q,pu,g),{t0,cols,res}=R,b=bestOf(R);$('ne').textContent=ENS;
   const bp=res.map(row=>{let k=-1;row.forEach((c,j)=>{if(c&&(k<0||key(c)>key(row[k])))k=j;});return k;});
   $('hm').innerHTML='<table class="hm"><tr><th>Varietas (umur)</th>'+cols.map(T=>`<th>${dl(t0,T).replace(' ','<br>')}</th>`).join('')+'</tr>'
-   +VAR.map((v,i)=>`<tr><td title="${v.t||''}">${v.n} (${v.u-pu-(pu>0?0:NUR)} hr lahan)</td>`+res[i].map((c,j)=>{
+   +V.map((v,i)=>`<tr><td title="${v.t||''}">${v.n} (${dc(v,pu)} hr lahan)</td>`+res[i].map((c,j)=>{
      if(!c)return '<td>–</td>';
      const best=j===bp[i],cls=best?'s4':c.b>=75?'s3':c.b>=55?'s2':'s1';
      return `<td class="${cls}" title="${best?'★ TERBAIK untuk varietas ini\n':''}${lbl} ${dl(t0,cols[j])}: hasil relatif rerata ${Math.round(c.m)}%, P20 ${Math.round(c.b)}%, hasil ≈ ${c.y.toFixed(1)} t/ha${c.sh<1?` (${Math.round((1-c.sh)*100)}% siklus memakai klimatologi)`:''}">${Math.round(c.m)}</td>`;}).join('')+'</tr>').join('')+'</table>';
   if(!b){$('rec').textContent='Data tidak cukup untuk simulasi.';return;}
-  const per=VAR.map((v,i)=>({i,k:bp[i]})).filter(x=>x.k>=0).sort((x,y)=>key(res[y.i][y.k])-key(res[x.i][x.k])),
-    ok=res[b.i].map((c,j)=>c&&c.b>=75?dl(t0,cols[j]):null).filter(Boolean),B_=VAR[b.i];
-  $('rec').innerHTML=`<h2>Rekomendasi pos ${S.name}</h2><p style="margin:0 0 6px"><b>${lbl} ±${dl(t0,cols[b.j])}</b> dengan <b>${B_.n}</b>: hasil relatif rerata ${Math.round(b.c.m)}%, P20 ${Math.round(b.c.b)}%, hasil lapang indikatif ≈ ${b.c.y.toFixed(1)} t/ha.</p>
-  <div class="note">Jendela aman (P20 ≥75) untuk ${B_.n}: ${ok.join(', ')||'tidak ada'}.<br>Varietas pada tanggal terbaiknya (urut kecocokan iklim): ${per.map(x=>{const c=res[x.i][x.k];return `${VAR[x.i].n} → ${dl(t0,cols[x.k])} (rerata ${Math.round(c.m)}%, P20 ${Math.round(c.b)}%, ${c.y.toFixed(1)} t/ha)`;}).join('; ')}.</div>`;
+  const per=V.map((v,i)=>({i,k:bp[i]})).filter(x=>x.k>=0).sort((x,y)=>key(res[y.i][y.k])-key(res[x.i][x.k])),
+    ok=res[b.i].map((c,j)=>c&&c.b>=75?dl(t0,cols[j]):null).filter(Boolean),B_=V[b.i];
+  $('rec').innerHTML=`<h2>Rekomendasi ${g?'lahan kering':'sawah'} pos ${S.name}</h2><p style="margin:0 0 6px"><b>${lbl} ±${dl(t0,cols[b.j])}</b> dengan <b>${B_.n}</b>: hasil relatif rerata ${Math.round(b.c.m)}%, P20 ${Math.round(b.c.b)}%, hasil lapang indikatif ≈ ${b.c.y.toFixed(1)} t/ha.</p>
+  <div class="note">Jendela aman (P20 ≥75) untuk ${B_.n}: ${ok.join(', ')||'tidak ada'}. Selisih 1–2 poin antar tanggal hijau masih dalam derau simulasi: baca sebagai jendela, bukan tanggal tunggal.<br>Varietas pada tanggal terbaiknya (urut kecocokan iklim): ${per.map(x=>{const c=res[x.i][x.k];return `${V[x.i].n} → ${dl(t0,cols[x.k])} (rerata ${Math.round(c.m)}%, P20 ${Math.round(c.b)}%, ${c.y.toFixed(1)} t/ha)`;}).join('; ')}.</div>`;
   $('tp').innerHTML='<tr><th>Pos</th><th>Tanam terbaik</th><th>Varietas</th><th>Rerata (%)</th><th>P20 (%)</th><th>Hasil (t/ha)</th></tr>'
-   +D.stations.filter(s=>s.fc&&s.fc.length&&s.clim).map(s=>{const r=plan(s,q,pu),t=bestOf(r);return t?`<tr><td>${s.name}</td><td>${dl(r.t0,r.cols[t.j])}</td><td>${VAR[t.i].n}</td><td>${Math.round(t.c.m)}</td><td>${Math.round(t.c.b)}</td><td>${t.c.y.toFixed(1)}</td></tr>`:'';}).join('');
+   +D.stations.filter(s=>s.fc&&s.fc.length&&s.clim).map(s=>{const r=plan(s,q,pu,g),t=bestOf(r);return t?`<tr><td>${s.name}</td><td>${dl(r.t0,r.cols[t.j])}</td><td>${V[t.i].n}</td><td>${Math.round(t.c.m)}</td><td>${Math.round(t.c.b)}</td><td>${t.c.y.toFixed(1)}</td></tr>`:'';}).join('');
 }
 
 /* ===== Dashboard hujan ===== */
@@ -220,7 +226,7 @@ Promise.all([
   fetch('sulawesi-barat.json').then(x=>x.json()).then(g=>L.geoJSON(g,{pane:'batas',interactive:false,style:{color:'#64748b',weight:2,fillOpacity:.1}}).addTo(map))
     .catch(e=>console.error('Gagal memuat batas wilayah:',e));
   const set=(o,d)=>{o=Math.max(-4.5,Math.min(4.5,+o||0));d=Math.max(-2,Math.min(2,+d||0));sc={o,d};$('o').value=o;$('d').value=d;render();};
-  set(I.oni,I.dmi);$('st').onchange=render;$('wq').onchange=tanam;$('metode').onchange=tanam;
+  set(I.oni,I.dmi);$('st').onchange=render;$('wq').onchange=tanam;$('metode').onchange=tanam;$('sys').onchange=tanam;
   $('o').onchange=$('d').onchange=()=>set($('o').value,$('d').value);
   document.querySelectorAll('button[data-s]').forEach(b=>b.onclick=()=>{const v=b.dataset.s;v==='obs'?set(I.oni,I.dmi):set(...v.split(',').map(Number));});
 }).catch(e=>{$('err').textContent='Gagal memuat data: '+e.message+' (pastikan data.json ada dan GitHub Pages aktif)';$('meta').textContent='';});
